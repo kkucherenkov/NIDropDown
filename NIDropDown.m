@@ -11,28 +11,30 @@
 
 @interface NIDropDown ()
 @property(nonatomic, strong) UITableView *table;
-@property(nonatomic, strong) UIButton *btnSender;
+@property(nonatomic, strong) UIView *Sender;
 @property(nonatomic, retain) NSArray *list;
-@property(nonatomic, retain) NSArray *imageList;
 @end
 
 @implementation NIDropDown
 @synthesize table;
-@synthesize btnSender;
+@synthesize Sender;
 @synthesize list;
-@synthesize imageList;
 @synthesize delegate;
 @synthesize animationDirection;
 
-- (id)showDropDown:(UIButton *)b:(CGFloat *)height:(NSArray *)arr:(NSArray *)imgArr:(NSString *)direction {
-    btnSender = b;
+- (id)showDropDownMenuFor:(UIView *)Parent withItems:(NSArray *)Items {
+    return [self showDropDownFrom:Parent withHeight:(Items.count*40) Items:Items And:@"down"];
+}
+
+- (id)showDropDownFrom:(UIView *)Parent withHeight:(CGFloat)height Items:(NSArray *)Items And:(NSString *)direction {
+    Sender = Parent;
     animationDirection = direction;
     self.table = (UITableView *)[super init];
     if (self) {
         // Initialization code
-        CGRect btn = b.frame;
-        self.list = [NSArray arrayWithArray:arr];
-        self.imageList = [NSArray arrayWithArray:imgArr];
+        CGRect btn = Parent.frame;
+        self.list = [NSArray arrayWithArray:Items];
+
         if ([direction isEqualToString:@"up"]) {
             self.frame = CGRectMake(btn.origin.x, btn.origin.y, btn.size.width, 0);
             self.layer.shadowOffset = CGSizeMake(-5, -5);
@@ -57,20 +59,20 @@
         [UIView beginAnimations:nil context:nil];
         [UIView setAnimationDuration:0.5];
         if ([direction isEqualToString:@"up"]) {
-            self.frame = CGRectMake(btn.origin.x, btn.origin.y-*height, btn.size.width, *height);
+            self.frame = CGRectMake(btn.origin.x, btn.origin.y - height, btn.size.width, height);
         } else if([direction isEqualToString:@"down"]) {
-            self.frame = CGRectMake(btn.origin.x, btn.origin.y+btn.size.height, btn.size.width, *height);
+            self.frame = CGRectMake(btn.origin.x, btn.origin.y+btn.size.height, btn.size.width, height);
         }
-        table.frame = CGRectMake(0, 0, btn.size.width, *height);
+        table.frame = CGRectMake(0, 0, btn.size.width, height);
         [UIView commitAnimations];
-        [b.superview addSubview:self];
+        [Parent.superview addSubview:self];
         [self addSubview:table];
     }
     return self;
 }
 
--(void)hideDropDown:(UIButton *)b {
-    CGRect btn = b.frame;
+-(void)hideDropDownFrom:(UIView *)Parent {
+    CGRect btn = Parent.frame;
     
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.5];
@@ -105,22 +107,8 @@
         cell.textLabel.font = [UIFont systemFontOfSize:15];
         cell.textLabel.textAlignment = UITextAlignmentCenter;
     }
-    if ([self.imageList count] == [self.list count]) {
-        cell.textLabel.text =[list objectAtIndex:indexPath.row];
-        cell.imageView.image = [imageList objectAtIndex:indexPath.row];
-    } else if ([self.imageList count] > [self.list count]) {
-        cell.textLabel.text =[list objectAtIndex:indexPath.row];
-        if (indexPath.row < [imageList count]) {
-            cell.imageView.image = [imageList objectAtIndex:indexPath.row];
-        }
-    } else if ([self.imageList count] < [self.list count]) {
-        cell.textLabel.text =[list objectAtIndex:indexPath.row];
-        if (indexPath.row < [imageList count]) {
-            cell.imageView.image = [imageList objectAtIndex:indexPath.row];
-        }
-    }
-    
-    cell.textLabel.textColor = [UIColor whiteColor];
+    cell.textLabel.text =[list objectAtIndex:indexPath.row];
+    cell.textLabel.textColor = [UIColor blackColor];
     
     UIView * v = [[UIView alloc] init];
     v.backgroundColor = [UIColor grayColor];
@@ -130,31 +118,8 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [self hideDropDown:btnSender];
-    
-    UITableViewCell *c = [tableView cellForRowAtIndexPath:indexPath];
-    [btnSender setTitle:c.textLabel.text forState:UIControlStateNormal];
-    
-    for (UIView *subview in btnSender.subviews) {
-        if ([subview isKindOfClass:[UIImageView class]]) {
-            [subview removeFromSuperview];
-        }
-    }
-    imgView.image = c.imageView.image;
-    imgView = [[UIImageView alloc] initWithImage:c.imageView.image];
-    imgView.frame = CGRectMake(5, 5, 25, 25);
-    [btnSender addSubview:imgView];
-    [self myDelegate];
-}
-
-- (void) myDelegate {
-    [self.delegate niDropDownDelegateMethod:self];
-}
-
--(void)dealloc {
-//    [super dealloc];
-//    [table release];
-//    [self release];
+    [self hideDropDownFrom:Sender];
+    [self.delegate niDropDownDelegateMethod:indexPath.row];
 }
 
 @end
